@@ -95,7 +95,7 @@ resource "aws_security_group" "RDS_allow_rule" {
    instance_type = "t2.micro"
    key_name = "DmitrijsM"
    security_groups = ["security_terraform2"]
-   user_data = filebase64("dmitrijs.sh")
+   user_data = filebase64("script.sh")
  
    lifecycle {
        create_before_destroy = true
