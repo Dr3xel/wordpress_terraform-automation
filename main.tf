@@ -29,6 +29,8 @@ provider "aws" {
  
    owners = ["099720109477"] # Canonical
  }
+
+#Security group
  resource "aws_security_group" "security_terraform2" {
    name = "security_terraform2"
    vpc_id = "vpc-03d9774797f85663b"
