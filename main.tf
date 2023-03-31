@@ -1,3 +1,5 @@
+# Specifie the configuration for Terraform, and declare the required AWS provider and version
+
 terraform {
   required_providers {
     aws = {
@@ -9,11 +11,14 @@ terraform {
   required_version = ">= 0.14.9"
 }
 
+# Declare the provider for AWS and set the region
 
-# Choosing the right provider
 provider "aws" {
          region = "eu-central-1"
  }
+
+# Declare a data source that retrieves the most recent Amazon Machine Image (AMI) 
+
  data "aws_ami" "ubuntu" {
    most_recent = true
  
@@ -30,7 +35,8 @@ provider "aws" {
    owners = ["099720109477"] # Canonical
  }
 
-#Security group
+# Declare a security group resource for the VPC, allow incomming traffic on ports and outgoing traffic
+
  resource "aws_security_group" "security_terraform2" {
    name = "security_terraform2"
    vpc_id = "vpc-03d9774797f85663b"
@@ -42,6 +48,7 @@ provider "aws" {
      protocol = "tcp"
      cidr_blocks = ["0.0.0.0/0"]
    }
+   
    ingress {
      from_port = 22
      to_port = 22
@@ -69,6 +76,8 @@ provider "aws" {
    }
  }
 
+# Creates an AWS security group called "RDS_allow_rules". It allows incoming traffic on port 3306 (MySQL) from the security group "security_terraform2". 
+
 resource "aws_security_group" "RDS_allow_rules" {
   name = "RDS_allow_rules"
   vpc_id = "vpc-03d9774797f85663b"
@@ -85,12 +94,13 @@ resource "aws_security_group" "RDS_allow_rules" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
   tags = {
     Name = "allow ec2"
   }
-
 }
 
+# Create an AWS launch configuration and set user data
 
  resource "aws_launch_configuration" "launch_conf" {
    image_id = data.aws_ami.ubuntu.id
@@ -103,6 +113,9 @@ resource "aws_security_group" "RDS_allow_rules" {
        create_before_destroy = true
    }
  }
+
+# Create an AWS auto scaling group and launch configuration
+
  resource "aws_autoscaling_group" "asg_1" {
    availability_zones = ["eu-central-1a", "eu-central-1b"]
    desired_capacity = 1
@@ -115,6 +128,9 @@ resource "aws_security_group" "RDS_allow_rules" {
        create_before_destroy = true
    }
  }
+
+# Create AWS ELB resource
+
  resource "aws_elb" "ELB" {
    name = "ELB"
    availability_zones = ["eu-central-1a", "eu-central-1b"]
@@ -133,6 +149,7 @@ resource "aws_security_group" "RDS_allow_rules" {
      target = "HTTP:80/"
      interval = 30
    }
+   
    cross_zone_load_balancing = true
    idle_timeout = 400
    connection_draining = true
@@ -142,9 +159,12 @@ resource "aws_security_group" "RDS_allow_rules" {
      Name = "ELB"
    }
  }
+
  output "elb_dns_name" {
  value = aws_elb.ELB.dns_name
  }
+
+# Create an AWS RDS instance
 
 resource "aws_db_instance" "db_RDS" {
 allocated_storage = 10
