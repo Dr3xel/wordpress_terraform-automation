@@ -67,8 +67,8 @@ provider "aws" {
    }
  }
 
-resource "aws_security_group" "RDS_allow_rule" {
-  name = "RDS_allow_rule"
+resource "aws_security_group" "RDS_allow_rules" {
+  name = "RDS_allow_rules"
   vpc_id = "vpc-03d9774797f85663b"
   ingress {
     from_port       = 3306
@@ -103,18 +103,18 @@ resource "aws_security_group" "RDS_allow_rule" {
  }
  resource "aws_autoscaling_group" "asg_1" {
    availability_zones = ["eu-central-1a", "eu-central-1b"]
-   desired_capacity = 2
-   max_size = 4
-   min_size = 2
-   load_balancers = [aws_elb.dmitrijs1.id]
+   desired_capacity = 1
+   max_size = 2
+   min_size = 1
+   load_balancers = [aws_elb.ELB.id]
    launch_configuration = aws_launch_configuration.launch_conf.id
  
    lifecycle {
        create_before_destroy = true
    }
  }
- resource "aws_elb" "dmitrijs1" {
-   name = "dmitrijs1"
+ resource "aws_elb" "ELB" {
+   name = "ELB"
    availability_zones = ["eu-central-1a", "eu-central-1b"]
  
    listener {
@@ -137,26 +137,26 @@ resource "aws_security_group" "RDS_allow_rule" {
    connection_draining_timeout = 400
  
    tags = {
-     Name = "dmitrijs1"
+     Name = "ELB"
    }
  }
  output "elb_dns_name" {
- value = aws_elb.dmitrijs1.dns_name
+ value = aws_elb.ELB.dns_name
  }
 
-resource "aws_db_instance" "wordpressdb" {
+resource "aws_db_instance" "db_RDS" {
 allocated_storage = 10
-identifier = "wordpressdb"
+identifier = "wordpressrds"
 storage_type = "gp2"
 engine = "mysql"
 engine_version = "8.0"
 instance_class = "db.t2.micro"
-name = "wordpressdb"
+name = "wordpressrds"
 username = "wordpress"
 password = "wordpress123"
 publicly_accessible    = true
 skip_final_snapshot    = true
-
+vpc_security_group_ids = [aws_security_group.RDS_allow_rules.id]
 
   tags = {
     Name = "ExampleRDSServerInstance"

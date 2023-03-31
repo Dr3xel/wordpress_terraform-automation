@@ -15,7 +15,7 @@ curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.pha
 chmod +x wp-cli.phar
 mv wp-cli.phar /usr/local/bin/wp
 wp core download --path=/var/www/html --allow-root
-wp config create --dbname=$db_name --dbuser=$db_username --dbpass=$db_password --dbhost=$db_RDS --path=/var/www/html --allow-root --extra-php <<PHP
+wp config create --dbname=${aws_db_instance.name} --dbuser=${aws_db_instance.username} --dbpass=${aws_db_instance.password} --dbhost=${aws_db_instance.db_RDS.ip} --path=/var/www/html --allow-root --extra-php <<PHP
 define( 'FS_METHOD', 'direct' );
 define('WP_MEMORY_LIMIT', '128M');
 PHP
