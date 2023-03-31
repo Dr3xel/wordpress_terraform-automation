@@ -37,8 +37,8 @@ provider "aws" {
 
 # Declare a security group resource for the VPC, allow incomming traffic on ports and outgoing traffic
 
- resource "aws_security_group" "security_terraform2" {
-   name = "security_terraform2"
+ resource "aws_security_group" "security_terraform" {
+   name = "security_terraform"
    vpc_id = "vpc-03d9774797f85663b"
    description = "security group for terraform"
  
@@ -72,20 +72,20 @@ provider "aws" {
    }
  
    tags = {
-     Name = "security_terraform2"
+     Name = "security_terraform"
    }
  }
 
 # Creates an AWS security group called "RDS_allow_rules". It allows incoming traffic on port 3306 (MySQL) from the security group "security_terraform2". 
 
-resource "aws_security_group" "RDS_allow_rules" {
-  name = "RDS_allow_rules"
+resource "aws_security_group" "security_rds" {
+  name = "security_rds"
   vpc_id = "vpc-03d9774797f85663b"
   ingress {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = ["${aws_security_group.security_terraform2.id}"]
+    security_groups = ["${aws_security_group.security_terraform.id}"]
   }
  
   egress {
@@ -105,8 +105,8 @@ resource "aws_security_group" "RDS_allow_rules" {
  resource "aws_launch_configuration" "launch_conf" {
    image_id = data.aws_ami.ubuntu.id
    instance_type = "t2.micro"
-   key_name = "DmitrijsM"
-   security_groups = ["security_terraform2"]
+   key_name = "wp_terraform"
+   security_groups = ["security_terraform"]
    user_data = filebase64("script.sh")
  
    lifecycle {
@@ -116,7 +116,7 @@ resource "aws_security_group" "RDS_allow_rules" {
 
 # Create an AWS auto scaling group and launch configuration
 
- resource "aws_autoscaling_group" "asg_1" {
+ resource "aws_autoscaling_group" "asg" {
    availability_zones = ["eu-central-1a", "eu-central-1b"]
    desired_capacity = 1
    max_size = 2
@@ -168,17 +168,17 @@ resource "aws_security_group" "RDS_allow_rules" {
 
 resource "aws_db_instance" "db_RDS" {
 allocated_storage = 10
-identifier = "wordpressrds"
+identifier = "wordpressdb"
 storage_type = "gp2"
 engine = "mysql"
 engine_version = "8.0"
 instance_class = "db.t2.micro"
-name = "wordpressrds"
-username = "wordpress"
-password = "wordpress123"
+name = "wordpressdb"
+username = "test_user"
+password = "test_password"
 publicly_accessible    = true
 skip_final_snapshot    = true
-vpc_security_group_ids = [aws_security_group.RDS_allow_rules.id]
+vpc_security_group_ids = [aws_security_group.security_rds.id]
 
   tags = {
     Name = "ExampleRDSServerInstance"
